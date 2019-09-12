@@ -1,17 +1,13 @@
 import TSim.*;
 
 public class Lab1 {
+    TSimInterface tsim;
 
-  public Lab1(int speed1, int speed2) {
-    TSimInterface tsi = TSimInterface.getInstance();
+    public Lab1(int speed1, int speed2) {
+        tsim = TSimInterface.getInstance();
+        Train one = new Train(this, 1, true, speed1);
+        Thread t1 = new Thread(one);
 
-    try {
-      tsi.setSpeed(1,speed1);
-      tsi.setSpeed(2,speed2); // This isn't a conflict
+        t1.run();
     }
-    catch (CommandException e) {
-      e.printStackTrace();    // or only e.getMessage() for the error
-      System.exit(1);
-    }
-  }
 }

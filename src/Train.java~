@@ -1,0 +1,23 @@
+import TSim.*;
+
+public class Train implements Runnable {
+    int id;
+    bool going_up;
+    TSimInterface tsim;
+
+    public Train(int id, TSimInterface tsim, bool going_up) {
+        this->id = id;
+        this->tsim = tsim;
+        this->going_up = going_up;
+    }
+
+    public void run() {
+        while(true) {
+            // The train runs until it meets a sensor.
+            SensorEvent sensor = tsim.getSensor(id);
+            // When it comes across a new sensor it acts based on
+            // which one it is
+            if(sensor.getStatus() == sensor.ACTIVE) {
+
+            }
+        }

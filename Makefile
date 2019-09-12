@@ -3,3 +3,6 @@ all: src/*.java
 
 clean:
 	rm -rf bin/*
+
+run: all
+	java -classpath bin Main Lab1.map 10 10
