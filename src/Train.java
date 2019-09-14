@@ -1,4 +1,5 @@
 import TSim.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Train implements Runnable {
     Lab1 parent;
@@ -6,6 +7,7 @@ public class Train implements Runnable {
     int startpos;
     TSimInterface tsim;
     int speed;
+    Boolean holds_prio;
 
     /*
      * startpos is 0 for the uppermost rail, 1 for the second
@@ -21,18 +23,19 @@ public class Train implements Runnable {
         if(startpos == 1) {
             // Startpos 1 is one of the shorter rails
             // Therefore it has a semafore (startpos 0 is fallback)
-
-            // Claim semaphore here, TODO
+            parent.lock[0].lock();
+            holds_prio = true;
         }
-        if(startpos == 2) {
+        else if(startpos == 2) {
             // Startpos 2 is one of the shorter rails
             // Therefore it has a semafore (startpos 3 is fallback)
-
-            // Claim semaphore here, TODO
+            parent.lock[4].lock();
+            holds_prio = true;
+        }
+        else {
+            holds_prio = false;
         }
     }
-
-
 
     public void run() {
         try {
@@ -50,25 +53,87 @@ public class Train implements Runnable {
                     int x = sensor.getXpos();
                     int y = sensor.getYpos();
 
-                    // Station sensors, to prevent derailment.
-                    if( x == 16 && (y == 13 || y == 11 || y == 5 || y == 3)) {
-                        // No semaphore changes, reverse train direction.
-                        speed = -speed;
-                        tsim.setSpeed(id, 0);
-                        Thread.sleep(2000);
-                        tsim.setSpeed(id, speed);
-                    }
-
                     // Group by heading up or down
                     //(up is positive speed, i flipped a train.)
                     if(speed < 0) { // Heading down
-                        // On the inside of top switch, prevents derailment
-                        if( x == 16 && y == 7 ) {
-                            tsim.setSwitch(17, 7, 0);
+                        // Station sensors, to prevent derailment.
+                        if( x == 13 && (y == 13 || y == 11) && speed < 0 ) {
+                            // No semaphore changes, reverse train direction.
+                            speed = -speed;
+                            tsim.setSpeed(id, 0);
+                            Thread.sleep(2000);
+                            tsim.setSpeed(id, speed);
                         }
-                        if( x == 17 && y == 8 ) {
-                            tsim.setSwitch(17, 7, 1);
+
+                        // For each non-station sensor pair, depending
+                        // on going up or down, one lock will be
+                        // aquired and one released
+
+                        // The switches above the crossing
+                        if( (x == 6 || x == 9) && y == 5 ) {
+                            if( speed < 0 ) { // If heading down
+                                // Claim lock 5 (the crossing)
+                                parent.claimLock(id, 5, speed);
+                            }
+                            else { // If heading up
+                                // Release lock 5 (the crossing)
+                                parent.tryReleaseLock(id, 5);
+                            }
                         }
+
+                        // On the inside of top switch
+                        if( x == 13 && (y == 7 || y == 8) ) {
+                            if( speed < 0 ) {
+                                // Release lock 5 (the crossing) TODO
+                                parent.tryReleaseLock(id, 5);
+
+                                // Lock handling automated by parent
+                                parent.claimLock(id, 3, speed);
+
+                                // Set switches to enter lock 3
+                                if( y == 7 ) {
+                                    tsim.setSwitch(17, 7, 0);
+                                }
+                                else {
+                                    tsim.setSwitch(17, 7, 1);
+                                }
+                            }
+                            else {
+                                // Release lock 3
+                                parent.tryReleaseLock(id, 3);
+
+                                // Claim lock 5
+                                parent.claimLock(id, 5, speed);
+                            }
+                        }
+
+                        // The right switch
+                        if( x == 19 && y == 9 ) {
+                            if( speed < 0 ) { // headed down
+                                // Release lock 4 (if not held parent ignores)
+                                parent.tryReleaseLock(id, 4);
+                                // Claim lock 2 if available
+                                if( parent.tryClaimLock(id, 2) ) { // if lock 2 was free
+                                    // set switch to top rail
+                                }
+                                else {
+                                    // set switch to bottom rail
+                                }
+                            }
+                            else { // headed up
+                                // Release lock 2 (if not held parent ignores)
+                                parent.tryReleaseLock(id, 2);
+                                // Claim lock 4 if available
+                                if( parent.tryClaimLock(id, 2) ) {
+                                    // Set switch to bottom rail
+
+                                }
+                                else {
+                                    // set switch to top rail
+                                }
+                            }
+                        }
+
 
                         // On the inside of left switch, prevents derailment
                         if( x == 5 && y == 9 ) {
@@ -79,6 +144,15 @@ public class Train implements Runnable {
                         }
                     }
                     else { // Heading up
+                        // Station sensors, to prevent derailment.
+                        if( x == 13 && (y == 5 || y == 3)) {
+                            // No semaphore changes, reverse train direction.
+                            speed = -speed;
+                            tsim.setSpeed(id, 0);
+                            Thread.sleep(2000);
+                            tsim.setSpeed(id, speed);
+                        }
+
                         // On the inside of right switch, prevents derailment
                         if( x == 14 && y == 9) {
                             tsim.setSwitch(15, 9, 1);
