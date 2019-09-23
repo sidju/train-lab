@@ -53,113 +53,104 @@ public class Train implements Runnable {
                     int x = sensor.getXpos();
                     int y = sensor.getYpos();
 
-                    // Group by heading up or down
-                    //(up is positive speed, i flipped a train.)
-                    if(speed < 0) { // Heading down
-                        // Station sensors, to prevent derailment.
-                        if( x == 13 && (y == 13 || y == 11) && speed < 0 ) {
-                            // No semaphore changes, reverse train direction.
-                            speed = -speed;
-                            tsim.setSpeed(id, 0);
-                            Thread.sleep(1000 + (20 * abs(speed)));
-                            tsim.setSpeed(id, speed);
-                        }
+                    // Station sensors, to prevent derailment.
+                    if(
+                       (x == 13 && (y == 13 || y == 11) && speed < 0 ) // Upper station
+                       ||
+                       ( x == 13 && (y == 5 || y == 3) && speed > 0 ) // Lower station
+                       ){
+                        // No semaphore changes, reverse train direction.
+                        speed = -speed;
+                        tsim.setSpeed(id, 0);
+                        Thread.sleep(1000 + (20 * abs(speed)));
+                        tsim.setSpeed(id, speed);
+                    }
 
-                        // For each non-station sensor pair, depending
-                        // on going up or down, one lock will be
-                        // aquired and one released
+                    // For each non-station sensor pair, depending
+                    // on going up or down, one lock will be
+                    // aquired and one released
 
-                        // The switches above the crossing
-                        if( (x == 6 || x == 9) && y == 5 ) {
-                            if( speed < 0 ) { // If heading down
-                                // Claim lock 5 (the crossing)
-                                parent.claimLock(id, 5, speed);
-                            }
-                            else { // If heading up
-                                // Release lock 5 (the crossing)
-                                parent.tryReleaseLock(id, 5);
-                            }
-                        }
-
-                        // On the inside of top switch
-                        if( x == 13 && (y == 7 || y == 8) ) {
-                            if( speed < 0 ) {
-                                // Release lock 5 (the crossing) TODO
-                                parent.tryReleaseLock(id, 5);
-
-                                // Lock handling automated by parent
-                                parent.claimLock(id, 3, speed);
-
-                                // Set switches to enter lock 3
-                                if( y == 7 ) {
-                                    tsim.setSwitch(17, 7, 0);
-                                }
-                                else {
-                                    tsim.setSwitch(17, 7, 1);
-                                }
-                            }
-                            else {
-                                // Release lock 3
-                                parent.tryReleaseLock(id, 3);
-
-                                // Claim lock 5
-                                parent.claimLock(id, 5, speed);
-                            }
-                        }
-
-                        // The right switch
-                        if( x == 19 && y == 9 ) {
-                            if( speed < 0 ) { // headed down
-                                // Release lock 4 (if not held parent ignores)
-                                parent.tryReleaseLock(id, 4);
-                                // Claim lock 2 if available
-                                if( parent.tryClaimLock(id, 2) ) { // if lock 2 was free
-                                    // set switch to top rail
-                                }
-                                else {
-                                    // set switch to bottom rail
-                                }
-                            }
-                            else { // headed up
-                                // Release lock 2 (if not held parent ignores)
-                                parent.tryReleaseLock(id, 2);
-                                // Claim lock 4 if available
-                                if( parent.tryClaimLock(id, 2) ) {
-                                    // Set switch to bottom rail
-
-                                }
-                                else {
-                                    // set switch to top rail
-                                }
-                            }
-                        }
-
-
-                        // On the inside of left switch, prevents derailment
-                        if( x == 5 && y == 9 ) {
-                            tsim.setSwitch(4, 9, 1);
-                        }
-                        if( x == 4 && y == 10 ) {
-                            tsim.setSwitch(4, 9, 0);
+                    // The switches above the crossing
+                    if( (x == 6 || x == 9) && y == 5 ) {
+                        if( speed < 0 ) { // If heading down
+                            // Claim lock 5 (the crossing)
+                            parent.claimLock(id, 5, speed);
+                       }
+                        else { // If heading up
+                            // Release lock 5 (the crossing)
+                            parent.tryReleaseLock(id, 5);
                         }
                     }
-                    else { // Heading up
-                        // Station sensors, to prevent derailment.
-                        if( x == 13 && (y == 5 || y == 3)) {
-                            // No semaphore changes, reverse train direction.
-                            speed = -speed;
-                            tsim.setSpeed(id, 0);
-                            Thread.sleep(2000);
-                            tsim.setSpeed(id, speed);
-                        }
 
-                        // On the inside of right switch, prevents derailment
-                        if( x == 14 && y == 9) {
-                            tsim.setSwitch(15, 9, 1);
+                    // On the inside of top switch
+                    if( x == 13 && (y == 7 || y == 8) ) {
+                        if( speed < 0 ) {
+                            // Release lock 5 (the crossing) TODO
+                            parent.tryReleaseLock(id, 5);
+
+                            // Lock handling automated by parent
+                            parent.claimLock(id, 3, speed);
+
+                            // Set switches to enter lock 3
+                            if( y == 7 ) {
+                                tsim.setSwitch(17, 7, 0);
+                            }
+                            else {
+                                tsim.setSwitch(17, 7, 1);
+                            }
                         }
-                        if( x == 15 && y == 10) {
-                            tsim.setSwitch(15, 9, 0);
+                        else {
+                            // Release lock 3
+                            parent.tryReleaseLock(id, 3);
+
+                            // Claim lock 5
+                            parent.claimLock(id, 5, speed);
                         }
+                    }
+
+                    // The right switch
+                    if( x == 19 && y == 9 ) {
+                        if( speed < 0 ) { // headed down
+                            // Release lock 4 (if not held parent ignores)
+                            parent.tryReleaseLock(id, 4);
+                            // Claim lock 2 if available
+                            if( parent.tryClaimLock(id, 2) ) { // if lock 2 was free
+                                // set switch to top rail
+                            }
+                            else {
+                                // set switch to bottom rail
+                            }
+                        }
+                        else { // headed up
+                            // Release lock 2 (if not held parent ignores)
+                            parent.tryReleaseLock(id, 2);
+                            // Claim lock 4 if available
+                            if( parent.tryClaimLock(id, 2) ) {
+                                // Set switch to bottom rail
+
+                            }
+                            else {
+                                // set switch to top rail
+                            }
+                        }
+                    }
+
+
+                    // On the inside of left switch, prevents derailment
+                    if( x == 5 && y == 9 ) {
+                        tsim.setSwitch(4, 9, 1);
+                    }
+                    if( x == 4 && y == 10 ) {
+                        tsim.setSwitch(4, 9, 0);
+                    }
+
+
+                    // On the inside of right switch, prevents derailment
+                    if( x == 14 && y == 9) {
+                        tsim.setSwitch(15, 9, 1);
+                    }
+                    if( x == 15 && y == 10) {
+                        tsim.setSwitch(15, 9, 0);
                     }
                 }
             }
