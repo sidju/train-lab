@@ -22,13 +22,13 @@ public class Train implements Runnable {
         // Claim semaphore for starting position
         if(startpos == 1) {
             // Startpos 1 is one of the shorter rails
-            // Therefore it has a semafore (startpos 0 is fallback)
+            // Therefore it has a semaphore (startpos 0 is fallback)
             parent.lock[0].lock();
             holds_prio = true;
         }
         else if(startpos == 2) {
             // Startpos 2 is one of the shorter rails
-            // Therefore it has a semafore (startpos 3 is fallback)
+            // Therefore it has a semaphore (startpos 3 is fallback)
             parent.lock[4].lock();
             holds_prio = true;
         }
@@ -61,7 +61,7 @@ public class Train implements Runnable {
                             // No semaphore changes, reverse train direction.
                             speed = -speed;
                             tsim.setSpeed(id, 0);
-                            Thread.sleep(2000);
+                            Thread.sleep(1000 + (20 * abs(speed)));
                             tsim.setSpeed(id, speed);
                         }
 
