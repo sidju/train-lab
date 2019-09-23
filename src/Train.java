@@ -1,5 +1,5 @@
 import TSim.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 public class Train implements Runnable {
     Lab1 parent;
@@ -24,13 +24,13 @@ public class Train implements Runnable {
         if(startpos == 1) {
             // Startpos 1 is one of the shorter rails
             // Therefore it has a semaphore (startpos 0 is fallback)
-            parent.lock[0].lock();
+            parent.sem[0].acquireUninterruptibly();
             holds_prio = true;
         }
         else if(startpos == 2) {
             // Startpos 2 is one of the shorter rails
             // Therefore it has a semaphore (startpos 3 is fallback)
-            parent.lock[4].lock();
+            parent.sem[4].acquireUninterruptibly();
             holds_prio = true;
         }
         else {
@@ -80,7 +80,7 @@ public class Train implements Runnable {
                         }
                         else { // If heading up
                             // Release sem 5 (the crossing)
-                            parent.releaseSem(id, 5, holds_prio);
+                            parent.releaseSem(id, 5);
                         }
                     }
 
