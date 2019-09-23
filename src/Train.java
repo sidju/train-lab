@@ -18,6 +18,7 @@ public class Train implements Runnable {
         this.id = id;
         this.tsim = parent.tsim;
         this.speed = speed;
+	this.speed = -1;
 
         // Claim semaphore for starting position
         if(startpos == 1) {
@@ -61,6 +62,7 @@ public class Train implements Runnable {
                        ){
                         // No semaphore changes, reverse train direction.
                         speed = -speed;
+			Thread.sleep(2000 - (100 * Math.abs(speed)));
                         tsim.setSpeed(id, 0);
                         Thread.sleep(1000 + (20 * Math.abs(speed)));
                         tsim.setSpeed(id, speed);
@@ -78,15 +80,17 @@ public class Train implements Runnable {
                        }
                         else { // If heading up
                             // Release lock 5 (the crossing)
-                            parent.tryReleaseLock(id, 5);
+                            parent.tryReleaseLock(id, 5, holds_prio);
                         }
                     }
 
                     // On the inside of top switch
                     if( x == 13 && (y == 7 || y == 8) ) {
                         if( speed < 0 ) {
-                            // Release lock 5 (the crossing) TODO
-                            parent.tryReleaseLock(id, 5);
+                            // Release lock 5 (the crossing)
+                            if(hold_prio) {
+				parent.releaseLock(id, 5);
+			    }
 
                             // Lock handling automated by parent
                             parent.claimLock(id, 3, speed);
@@ -111,23 +115,32 @@ public class Train implements Runnable {
                     // The right switch
                     if( x == 19 && y == 9 ) {
                         if( speed < 0 ) { // headed down
-                            // Release lock 4 (if not held parent ignores)
-                            parent.tryReleaseLock(id, 4);
+                            // Release lock 4 (if held)
+                            if(hold_prio) {
+				parent.releaseLock(id, 4);
+			    }
                             // Claim lock 2 if available
                             if( parent.tryClaimLock(id, 2) ) { // if lock 2 was free
                                 // set switch to top rail
+				tsim.setSwitch(15, 9, 0);
+                                holds_prio = true;				
                             }
                             else {
                                 // set switch to bottom rail
+				tsim.setSwitch(15, 9, 1);
                             }
                         }
                         else { // headed up
-                            // Release lock 2 (if not held parent ignores)
-                            parent.tryReleaseLock(id, 2);
+                            // Release lock 2 (if held)
+                            if(hold_prio) {
+				parent.releaseLock(id, 2);
+			    }
                             // Claim lock 4 if available
                             if( parent.tryClaimLock(id, 2) ) {
                                 // Set switch to bottom rail
 
+				// note that you are holding the sem
+				holds_prio = true;
                             }
                             else {
                                 // set switch to top rail
