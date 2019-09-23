@@ -62,7 +62,7 @@ public class Train implements Runnable {
                         // No semaphore changes, reverse train direction.
                         speed = -speed;
                         tsim.setSpeed(id, 0);
-                        Thread.sleep(1000 + (20 * abs(speed)));
+                        Thread.sleep(1000 + (20 * Math.abs(speed)));
                         tsim.setSpeed(id, speed);
                     }
 
@@ -136,22 +136,22 @@ public class Train implements Runnable {
                     }
 
 
-                    // On the inside of left switch, prevents derailment
-                    if( x == 5 && y == 9 ) {
-                        tsim.setSwitch(4, 9, 1);
-                    }
-                    if( x == 4 && y == 10 ) {
-                        tsim.setSwitch(4, 9, 0);
-                    }
+                    // // On the inside of left switch, prevents derailment
+                    // if( x == 5 && y == 9 ) {
+                    //     tsim.setSwitch(4, 9, 1);
+                    // }
+                    // if( x == 4 && y == 10 ) {
+                    //     tsim.setSwitch(4, 9, 0);
+                    // }
 
 
-                    // On the inside of right switch, prevents derailment
-                    if( x == 14 && y == 9) {
-                        tsim.setSwitch(15, 9, 1);
-                    }
-                    if( x == 15 && y == 10) {
-                        tsim.setSwitch(15, 9, 0);
-                    }
+                    // // On the inside of right switch, prevents derailment
+                    // if( x == 14 && y == 9) {
+                    //     tsim.setSwitch(15, 9, 1);
+                    // }
+                    // if( x == 15 && y == 10) {
+                    //     tsim.setSwitch(15, 9, 0);
+                    // }
                 }
             }
         }
