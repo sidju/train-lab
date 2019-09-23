@@ -1,1 +1,3 @@
-/bin/
+/bin/*
+# Make the bin folder exist by adding a file to it
+!/bin/.gitkeep 
