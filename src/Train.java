@@ -86,11 +86,9 @@ public class Train implements Runnable {
 
                     // On the inside of top switch
                     if( x == 13 && (y == 7 || y == 8) ) {
-                        if( speed < 0 ) {
+                        if( speed < 0 ) { // If heading down
                             // Release sem 5 (the crossing)
-                            if( holds_prio ) {
-                                parent.releaseSem(id, 5);
-                            }
+                            parent.releaseSem(id, 5);
 
                             // Sem handling automated by parent
                             parent.claimSem(id, 3, speed);
@@ -104,10 +102,12 @@ public class Train implements Runnable {
                             }
                         }
                         else {
-                            // Release sem 3
-                            parent.releaseSem(id, 3); // TODO if holds prio
+                            // Release sem 3 (if held)
+                            if ( holds_prio ) {
+                                parent.releaseSem(id, 3);
+                            }
 
-                            // Claim sem 5 // If tryClaimSem?
+                            // Claim sem 5
                             parent.claimSem(id, 5, speed);
                         }
                     }
