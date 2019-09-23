@@ -18,7 +18,7 @@ public class Train implements Runnable {
         this.id = id;
         this.tsim = parent.tsim;
         this.speed = speed;
-	this.speed = -1;
+        this.speed = -1;
 
         // Claim semaphore for starting position
         if(startpos == 1) {
@@ -62,40 +62,40 @@ public class Train implements Runnable {
                        ){
                         // No semaphore changes, reverse train direction.
                         speed = -speed;
-			Thread.sleep(2000 - (100 * Math.abs(speed)));
+                        Thread.sleep(2000 - (100 * Math.abs(speed)));
                         tsim.setSpeed(id, 0);
                         Thread.sleep(1000 + (20 * Math.abs(speed)));
                         tsim.setSpeed(id, speed);
                     }
 
                     // For each non-station sensor pair, depending
-                    // on going up or down, one lock will be
+                    // on going up or down, one sem will be
                     // aquired and one released
 
                     // The switches above the crossing
                     if( (x == 6 || x == 9) && y == 5 ) {
                         if( speed < 0 ) { // If heading down
-                            // Claim lock 5 (the crossing)
-                            parent.claimLock(id, 5, speed);
-                       }
+                            // Claim sem 5 (the crossing)
+                            parent.claimSem(id, 5, speed);
+                        }
                         else { // If heading up
-                            // Release lock 5 (the crossing)
-                            parent.tryReleaseLock(id, 5, holds_prio);
+                            // Release sem 5 (the crossing)
+                            parent.releaseSem(id, 5, holds_prio);
                         }
                     }
 
                     // On the inside of top switch
                     if( x == 13 && (y == 7 || y == 8) ) {
                         if( speed < 0 ) {
-                            // Release lock 5 (the crossing)
+                            // Release sem 5 (the crossing)
                             if(hold_prio) {
-				parent.releaseLock(id, 5);
-			    }
+                                parent.releaseSem(id, 5);
+                            }
 
-                            // Lock handling automated by parent
-                            parent.claimLock(id, 3, speed);
+                            // Sem handling automated by parent
+                            parent.claimSem(id, 3, speed);
 
-                            // Set switches to enter lock 3
+                            // Set switches to enter sem 3
                             if( y == 7 ) {
                                 tsim.setSwitch(17, 7, 0);
                             }
@@ -104,50 +104,49 @@ public class Train implements Runnable {
                             }
                         }
                         else {
-                            // Release lock 3
-                            parent.tryReleaseLock(id, 3);
+                            // Release sem 3
+                            parent.releaseSem(id, 3); // TODO if holds prio
 
-                            // Claim lock 5
-                            parent.claimLock(id, 5, speed);
+                            // Claim sem 5 // If tryClaimSem?
+                            parent.claimSem(id, 5, speed);
                         }
                     }
 
                     // The right switch
                     if( x == 19 && y == 9 ) {
                         if( speed < 0 ) { // headed down
-                            // Release lock 4 (if held)
+                            // Release sem 4 (if held)
                             if(hold_prio) {
-				parent.releaseLock(id, 4);
-			    }
-                            // Claim lock 2 if available
-                            if( parent.tryClaimLock(id, 2) ) { // if lock 2 was free
+                                parent.releaseSem(id, 4);
+                            }
+                            // Claim sem 2 if available
+                            if( parent.tryClaimSem(id, 2) ) { // if sem 2 was free
                                 // set switch to top rail
-				tsim.setSwitch(15, 9, 0);
-                                holds_prio = true;				
+                                tsim.setSwitch(15, 9, 0);
+                                holds_prio = true;
                             }
                             else {
                                 // set switch to bottom rail
-				tsim.setSwitch(15, 9, 1);
+                                tsim.setSwitch(15, 9, 1);
                             }
                         }
                         else { // headed up
-                            // Release lock 2 (if held)
+                            // Release sem 2 (if held)
                             if(hold_prio) {
-				parent.releaseLock(id, 2);
-			    }
-                            // Claim lock 4 if available
-                            if( parent.tryClaimLock(id, 2) ) {
+                                parent.releaseSem(id, 2);
+                            }
+                            // Claim sem 4 if available
+                            if( parent.tryClaimSem(id, 2) ) {
                                 // Set switch to bottom rail
 
-				// note that you are holding the sem
-				holds_prio = true;
+                                // note that you are holding the sem
+                                holds_prio = true;
                             }
                             else {
                                 // set switch to top rail
                             }
                         }
                     }
-
 
                     // // On the inside of left switch, prevents derailment
                     // if( x == 5 && y == 9 ) {
@@ -156,7 +155,6 @@ public class Train implements Runnable {
                     // if( x == 4 && y == 10 ) {
                     //     tsim.setSwitch(4, 9, 0);
                     // }
-
 
                     // // On the inside of right switch, prevents derailment
                     // if( x == 14 && y == 9) {
