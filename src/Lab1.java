@@ -12,13 +12,13 @@ public class Lab1 {
             sem[i] = new Semaphore(1);
         }
 
-        // Since train 2 will not be created yet
-        sem[0].acquireUninterruptibly();
-
-        Train one = new Train(this, 1, 0, speed1);
+        Train one = new Train(this, 1, 3, speed1);
         Thread t1 = new Thread(one);
+        Train two = new Train(this, 2, 1, speed2);
+        Thread t2 = new Thread(two);
 
-        t1.run();
+        t1.start();
+        t2.start();
     }
 
     public boolean tryClaimSem(int train, int sem) {

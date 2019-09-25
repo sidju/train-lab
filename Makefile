@@ -5,4 +5,4 @@ clean:
 	rm -rf bin/*
 
 run: all
-	java -classpath bin Main Lab1.map -10 10
+	java -classpath bin Main Lab1.map -25 25 10
