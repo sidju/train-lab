@@ -69,7 +69,7 @@ public class Train implements Runnable {
                     // aquired and one released
 
                     // The switches above the crossing
-                    else if( (x == 6 || x == 9) && y == 5 ) {
+                    else if( ( x == 6 && y == 6 ) || ( x == 9 && y == 5 )) {
                         if( speed < 0 ) { // If heading down
                             // Claim sem 5 (the crossing)
                             parent.claimSem(id, 5, speed);
@@ -150,12 +150,30 @@ public class Train implements Runnable {
                         }
                     }
 
-                    // The middle switches
-                    else if( x == 10 && ( y == 10 || y == 9 ) ) {
+                    // The middle right switches
+                    else if( ( x == 12 && y == 9 ) ||
+                             ( x == 13 && y == 10 ) ) {
                         if( speed < 0) { // Headed down
                             // Release sem 3
                             parent.releaseSem(id, 3);
+                        }
+                        else { // Headed up
+                            // Claim sem 3
+                            parent.claimSem(id, 3, speed);
 
+                            // Set switch to enter sem 3
+                            if( y == 10) {
+                                tsim.setSwitch(15, 9, 1);
+                            }
+                            else {
+                                tsim.setSwitch(15, 9, 0);
+                            }
+                        }
+                    }
+
+                    else if( ( x == 7 && y == 9 ) ||
+                             ( x == 6 && y == 10 ) ){
+                        if( speed < 0 ) { // headed down
                             // Claim sem 1
                             parent.claimSem(id, 1, speed);
 
@@ -167,20 +185,9 @@ public class Train implements Runnable {
                                 tsim.setSwitch(4, 9, 1);
                             }
                         }
-                        else { // Headed up
+                        else {
                             // Release sem 1
                             parent.releaseSem(id, 1);
-
-                            // Claim sem 3
-                            parent.claimSem(id, 3, speed);
-
-                            // Set switch to enter sem 3
-                            if( y == 10) {
-                                tsim.setSwitch(15, 9, 1);
-                            }
-                            else {
-                                tsim.setSwitch(15, 9, 0);
-                            }
                         }
                     }
 

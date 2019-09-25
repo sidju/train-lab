@@ -1,0 +1,71 @@
+###############################
+# Choice of critical sections #
+###############################
+
+To maximise efficiency we initially created one critical section for
+each unbroken section of rail. This resulted in 11 critical
+sections. After some quick optimising we arrived at 9 critical
+sections, by concluding that there was no way to change rail in the
+crossing at the top of the map.
+
+Finally we optimised for there being only two trains, concluding that
+only one high priority choice of each double-rail segments need to be
+tracked. This since the other train is either not on that priority
+track (so you take the priority track) or on the priority track (in
+which case the other track must be empty, lest the train exist in two
+places at once). As such only 6 critical sections need to be tracked
+(though I would say the untracked 3 are still critical, just not for
+our case).
+
+
+############################
+# Placement of the sensors #
+############################
+
+The maximum speed possible is primarily affected by the shortest
+distance between where the train needs to stop and the sensor that
+warns of it. Therefore all sensors have been placed minimum 2 squares
+from the crossings or track endings they relate to. This distance is
+based on that being the highest minimum distance between sensor and
+crossing possible for all tracks. (Limited by the lower leftmost track
+that is 6 squares long.)
+
+The sensors do, of course, need to exist at both the entrance and the
+exit of each tracked critical section (to track it). A lot of the
+sensors perform double duty in that regard, existing at the entrance
+of one semaphore and the exit of another. This was done to make the 16
+recommended sensors sufficient to track all sections.
+
+Finally to improve the flow we elected not join the entrance of "Sem
+1" and "Sem 3", since that prevents overtaking on that stretch. The
+distance given between their entrances is sufficient for faster trains
+to regularly overtake.
+
+
+#######################
+# Maximum train speed #
+#######################
+
+From testing we found that trains can regularly stop in the two
+squares available between all sensors and crossing at speeds up to
+22. Therefore that is the maximum speed for our solution.
+
+
+###########
+# Testing #
+###########
+
+echo '
+test: all
+	java -classpath bin Main Lab1.map -22 22 5 &
+	java -classpath bin Main Lab1.map -9 17 5 &
+	java -classpath bin Main Lab1.map -17 9 5 &
+	java -classpath bin Main Lab1.map -22 15 5 &
+	java -classpath bin Main Lab1.map -15 22 5 &
+	java -classpath bin Main Lab1.map -22 1 5 &
+	java -classpath bin Main Lab1.map -1 22 5 &
+	java -classpath bin Main Lab1.map -1 1 2 &
+' >> Makefile
+make test
+
+That and waiting to see if any collisions occur.
