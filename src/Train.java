@@ -59,9 +59,8 @@ public class Train implements Runnable {
                        ( x == 13 && (y == 5 || y == 3) && speed > 0 ) ){// Lower station
                         // No semaphore changes, reverse train direction.
                         speed = -speed;
-                        Thread.sleep(2000 - (100 * Math.abs(speed)));
                         tsim.setSpeed(id, 0);
-                        Thread.sleep(1000 + (100 * Math.abs(speed)));
+                        Thread.sleep(1000 + (20 * Math.abs(speed)));
                         tsim.setSpeed(id, speed);
                     }
 
