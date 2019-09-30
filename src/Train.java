@@ -7,7 +7,7 @@ public class Train implements Runnable {
     int startpos;
     TSimInterface tsim;
     int speed;
-    Boolean holds_prio;
+    Boolean holds_prio, going_up;
 
     /*
      * startpos is 0 for the lowest rail, 1 for the second
@@ -18,6 +18,13 @@ public class Train implements Runnable {
         this.id = id;
         this.tsim = parent.tsim;
         this.speed = speed;
+
+        if(id == 1) {
+            going_up = false;
+        }
+        else {
+            going_up = true;
+        }
 
         // Claim semaphore for starting position
         if(startpos == 1) {
@@ -55,10 +62,11 @@ public class Train implements Runnable {
 
                     // Station sensors, to prevent derailment.
                     if(
-                       (x == 13 && (y == 13 || y == 11) && speed < 0 ) || // Upper station
-                       ( x == 13 && (y == 5 || y == 3) && speed > 0 ) ){// Lower station
+                       (x == 13 && (y == 13 || y == 11) && !going_up ) || // Upper station
+                       ( x == 13 && (y == 5 || y == 3) && going_up ) ){// Lower station
                         // No semaphore changes, reverse train direction.
                         speed = -speed;
+                        going_up = !going_up;
                         tsim.setSpeed(id, 0);
                         Thread.sleep(1000 + (20 * Math.abs(speed)));
                         tsim.setSpeed(id, speed);
@@ -70,7 +78,7 @@ public class Train implements Runnable {
 
                     // The switches above the crossing
                     else if( ( x == 6 && y == 6 ) || ( x == 9 && y == 5 )) {
-                        if( speed < 0 ) { // If heading down
+                        if( !going_up ) { // If heading down
                             // Claim sem 5 (the crossing)
                             parent.claimSem(id, 5, speed);
                         }
@@ -82,7 +90,7 @@ public class Train implements Runnable {
 
                     // On the upside of top switch
                     else if( x == 13 && (y == 7 || y == 8) ) {
-                        if( speed < 0 ) { // If heading down
+                        if( !going_up ) { // If heading down
                             // Release sem 5 (the crossing)
                             parent.releaseSem(id, 5);
 
@@ -108,7 +116,7 @@ public class Train implements Runnable {
 
                     // The right switch
                     else if( x == 19 && y == 9 ) {
-                        if( speed < 0 ) { // headed down
+                        if( !going_up ) { // headed down
                             // Release sem 4 (if held)
                             if( holds_prio ) {
                                 parent.releaseSem(id, 4);
@@ -153,7 +161,7 @@ public class Train implements Runnable {
                     // The middle right switches
                     else if( ( x == 12 && y == 9 ) ||
                              ( x == 13 && y == 10 ) ) {
-                        if( speed < 0) { // Headed down
+                        if( !going_up ) { // Headed down
                             // Release sem 3
                             parent.releaseSem(id, 3);
                         }
@@ -173,7 +181,7 @@ public class Train implements Runnable {
 
                     else if( ( x == 7 && y == 9 ) ||
                              ( x == 6 && y == 10 ) ){
-                        if( speed < 0 ) { // headed down
+                        if( !going_up ) { // headed down
                             // Claim sem 1
                             parent.claimSem(id, 1, speed);
 
@@ -193,7 +201,7 @@ public class Train implements Runnable {
 
                     // Left sensor
                     else if( x == 1 && y == 10 ) {
-                        if(speed < 0) { // Heading down
+                        if( !going_up ) { // Heading down
                             // Release sem 2, if held
                             if( holds_prio ) {
                                 parent.releaseSem(id, 2);
@@ -237,7 +245,7 @@ public class Train implements Runnable {
                     // The sensors on the inside of the bottom switch
                     else if( ( x == 6 && y == 11 ) ||
                              ( x == 4 && y == 13 ) ) {
-                        if( speed < 0 ) { // Heading down
+                        if( !going_up ) { // Heading down
                             // Release sem 1
                             parent.releaseSem(id, 1);
                         }
